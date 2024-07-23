@@ -65,6 +65,12 @@ const createReservation = async ({
   return dbResponse.rows[0];
 };
 
+const destroyReservation = async ({ id, customer_id }) => {
+  const SQL = `DELETE FROM reservation WHERE id=$1 AND customer_id=$2`;
+
+  await client.query(SQL, [id, customer_id]);
+};
+
 const fetchCustomers = async () => {
   const SQL = `SELECT * FROM customer;`;
 
@@ -79,12 +85,21 @@ const fetchRestaurants = async () => {
   return dbResponse.rows;
 };
 
+const fetchReservations = async () => {
+  const SQL = `SELECT * FROM reservation;`;
+
+  const dbResponse = await client.query(SQL);
+  return dbResponse.rows;
+};
+
 module.exports = {
   client,
   createTables,
   createCustomer,
   createRestaurant,
+  createReservation,
+  destroyReservation,
   fetchCustomers,
   fetchRestaurants,
-  createReservation,
+  fetchReservations,
 };

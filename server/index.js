@@ -4,9 +4,70 @@ const {
   createCustomer,
   createRestaurant,
   createReservation,
+  destroyReservation,
   fetchCustomers,
   fetchRestaurants,
+  fetchReservations,
 } = require("./db");
+const express = require("express");
+
+const server = express();
+
+server.use(express.json());
+
+server.get("/api/customers", async (req, res, next) => {
+  try {
+    const response = await fetchCustomers();
+    res.send(response);
+  } catch (error) {
+    next(error);
+  }
+});
+server.get("/api/restaurants", async (req, res, next) => {
+  try {
+    const response = await fetchRestaurants();
+    res.send(response);
+  } catch (error) {
+    next(error);
+  }
+});
+server.get("/api/reservations", async (req, res, next) => {
+  try {
+    const response = await fetchReservations();
+    res.send(response);
+  } catch (error) {
+    next(error);
+  }
+});
+server.post(
+  "/api/customers/:customer_id/reservations",
+  async (req, res, next) => {
+    try {
+      const { customer_id } = req.params;
+      const reservation = await createReservation({ ...req.body, customer_id });
+      res.status(201).send(reservation);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+server.delete(
+  "/api/customers/:customer_id/reservations/:id",
+  async (req, res, next) => {
+    try {
+      const { customer_id, id } = req.params;
+      await destroyReservation({ customer_id, id });
+
+      res.sendStatus(204);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+server.use((err, req, res) => {
+  res.status(err.status || 500).send({ err });
+});
 
 const init = async () => {
   await client.connect();
@@ -19,6 +80,7 @@ const init = async () => {
     jim,
     norman,
     darian,
+    havier,
     marge,
     frankie,
     maxerma,
@@ -41,15 +103,9 @@ const init = async () => {
     createRestaurant({ name: "Panda Express" }),
   ]);
 
-  console.log("Tables seeded!");
+  console.log("Tables seeded!")
 
-  const customers = await fetchCustomers();
-  console.log("Customers", customers);
-
-  const restaurants = await fetchRestaurants();
-  console.log("Restaurants", restaurants);
-
-  const [reserv1, reserv2, reserv3, reserv4, reserv5] = await Promise.all([
+  const [] = await Promise.all([
     createReservation({
       date: "10/31/2025",
       party_count: 2,
@@ -82,11 +138,10 @@ const init = async () => {
     }),
   ]);
 
-  console.log("Darian Reserv", reserv1);
-  console.log("Frankie Reserv", reserv2);
-  console.log("Marge Reserv", reserv3);
-  console.log("Norman Reserv", reserv4);
-  console.log("Jim Reserv", reserv5);
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    console.log(`Server listening on PORT ${PORT}`);
+  });
 };
 
 init();
